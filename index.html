@@ -1,17 +1,35 @@
+<!--
+    Sprite Palette Guesser
+    This is a browser game where you identify sprites from their color palette.
+    Copyright (C) 2026  Felipe R.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
 <!doctype html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8" />
-
     <title>Sprite Palette Guesser</title>
     <meta name="application-name" content="Sprite Palette Guesser" />
     <meta name="version" content="1.0" />
-    <link rel="icon" type="image/svg" href="./SpritePaletteGuesser-Icon.svg" />
+
+    <!--<link rel="icon" type="image/svg" href="./SpritePaletteGuesser-Icon.svg" />-->
 
     <meta name="author" content="Felipe Rodrigues" />
-    <meta name="description" content="" />
-    <meta name="keywords" content="HTML, CSS, JavaScript, web, mobile" />
+    <meta name="description" content="A browser game where you identify sprites from their color palette." />
+    <meta name="keywords" content="sprite, palette, pixel art, video games, guesser, guessing game, Pokémon, HTML, CSS, JavaScript, browser, quiz, sprite sheet, gaming, web, pixel" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -24,6 +42,7 @@
             font-size: 16px;
             font-weight: normal;
             border: none;
+            border-style: none;
         }
 
         html,
@@ -60,10 +79,6 @@
             text-align: center;
         }
 
-        hr {
-            margin: 1ch;
-        }
-
         table {
             width: 900px;
             height: 100%;
@@ -81,46 +96,10 @@
             min-width: 450px;
             width: 450px;
             max-width: 450px;
-            border: 1px solid grey;
         }
 
         td.top {
             vertical-align: top;
-        }
-
-
-
-
-        table {
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            border: 1px solid black;
-            text-align: center;
-        }
-
-        th {
-            background: whitesmoke;
-            white-space: nowrap;
-        }
-
-        .cellVerticalGap {
-            border: none;
-            background: none;
-            padding: 0ch 2ch;
-        }
-
-        hr {
-            margin: 1ch;
-        }
-
-        .preview {
-            max-width: 100px;
-            max-height: 100px;
-            object-fit: contain;
-            display: block;
         }
 
         button {
@@ -128,7 +107,6 @@
             background: none;
             background-image: none;
         }
-
 
         .clickable {
             background-image: linear-gradient(white, lightblue, cyan);
@@ -150,18 +128,13 @@
             color: blue !important;
         }
 
-        select {
-            border: 0px;
-            border-style: none;
-        }
-
         select.clickable option {
             background-color: white;
             color: black;
         }
 
         select.clickable option:checked {
-            background-color: lightgrey;
+            background-color: white;
             color: black;
         }
 
@@ -254,10 +227,16 @@
             cursor: pointer;
         }
 
-        .searchResult:hover {
+        .searchResult:not(:disabled):hover {
             background: blue;
             color: yellow;
             font-weight: bold;
+        }
+
+        :disabled:hover,
+        :disabled:focus,
+        :disabled:active {
+            cursor: default;
         }
 
         #guessLog {
@@ -280,7 +259,6 @@
     <div id="screen">
         <div id="app">
             <h1>Sprite Palette Guesser</h1>
-
             <table>
                 <tr>
                     <td>
@@ -307,20 +285,15 @@
                     </td>
                     <td class="hidable top" hidden>
                         <div id="search">
-                            <input id="searchInput" type="text" autocomplete="off" placeholder="Search...">
+                            <input id="searchInput" oninput="searchInputChange()" type="text" autocomplete="off" placeholder="Search...">
 
-                            <button id="searchButton" type="button" aria-label="Show all" class="clickable">▼</button>
+                            <button id="searchButton" type="button" onclick="searchButtonClick()" aria-label="Show all" class="clickable">▼</button>
 
                             <div id="searchResults"></div>
                         </div>
                     </td>
                 </tr>
             </table>
-
-
-
-
-
         </div>
     </div>
 
@@ -333,6 +306,7 @@
         const LANDSCAPE_HEIGHT = 900;
         const PORTRAIT_WIDTH = 900;
         const PORTRAIT_HEIGHT = 1600;
+
         function resizeApp() {
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
@@ -363,13 +337,11 @@
 
         resizeApp();
 
-
-
-        // ########################################################################################################################
-        // ########################################################################################################################
-        // ########################################################################################################################
-        // ########################################################################################################################
-        // ########################################################################################################################
+        // ##############################################################################################
+        // ##############################################################################################
+        // ##############################################################################################
+        // ##############################################################################################
+        // ##############################################################################################
 
         const DATASETS = {
             dataPokemonEmeraldPokemonFront: dataPokemonEmeraldPokemonFront,
@@ -394,10 +366,19 @@
 
         let KEYS;
         let DATA;
-        let remainingTries = RETRIES;
-        let randomKey;
+        let REMAINING_TRIES = RETRIES;
+        let RANDOM_KEY;
 
-        //-------------------------------------------------------------------------------
+        // ##############################################################################################
+
+        let colorMapImageElement = document.createElement("img");
+        let originalImageElement = document.createElement("img");
+
+        // ##############################################################################################
+        // ##############################################################################################
+        // ##############################################################################################
+        // ##############################################################################################
+        // ##############################################################################################
 
         function getRandomKey() {
             return KEYS[Math.floor(Math.random() * KEYS.length)];
@@ -415,15 +396,6 @@
             });
         }
 
-        function toggleGame() {
-            if (HIDABLE_ELEMENTS.every(element => element.hidden === true)) {
-                showGame();
-            }
-            else {
-                hideGame();
-            }
-        }
-
         function prepareGame() {
 
             if (DATA_DROPDOWN.value === "0") {
@@ -435,19 +407,18 @@
 
             KEYS = Object.keys(DATA);
 
-            remainingTries = RETRIES;
+            REMAINING_TRIES = RETRIES;
 
             newGuess();
+
+            fillSearchDropdown();
 
         }
 
 
         function newGuess() {
-            randomKey = getRandomKey();
-            let object = DATA[randomKey];
-
-            const colorMapImageElement = new Image();
-            const originalImageElement = new Image();
+            RANDOM_KEY = getRandomKey();
+            const object = DATA[RANDOM_KEY];
 
             colorMapImageElement.src = object.colorMap;
             originalImageElement.src = object.image;
@@ -456,12 +427,11 @@
             ORIGINALIMAGE_DISPLAY.replaceChildren(originalImageElement);
 
             SEARCH_INPUT.value = "";
-            SEARCH_RESULTS.replaceChildren();
             SEARCH_RESULTS.style.display = "none";
 
             GUESS_LOG.value = "";
 
-            remainingTries = RETRIES;
+            REMAINING_TRIES = RETRIES;
             originalImageElement.hidden = true;
 
             colorMapImageElement.onload = () => {
@@ -470,121 +440,89 @@
             };
 
             showGame();
+
+            SEARCH_RESULTS.querySelectorAll(":disabled").forEach(button => {
+                button.disabled = false;
+            });
+
+            SEARCH_INPUT.focus();
         }
 
-        //-------------------------------------------------------------------------------
-        //-------------------------------------------------------------------------------
-        //-------------------------------------------------------------------------------
+        function fillSearchDropdown() {
+            SEARCH_RESULTS.replaceChildren();
+            for (const key of KEYS) {
+                const button = document.createElement("button");
+                button.className = "searchResult";
+                button.type = "button";
+                button.textContent = key;
+                button.onclick = () => submitGuess(key, button);
+                button.hidden = true;
+                SEARCH_RESULTS.appendChild(button);
+            }
+        }
 
+        function submitGuess(key, button) {
+            SEARCH_INPUT.value = key;
+            SEARCH_RESULTS.style.display = "none";
 
-        SEARCH_INPUT.addEventListener("input", () => {
+            const correctGuess = (SEARCH_INPUT.value === RANDOM_KEY);
 
+            --REMAINING_TRIES;
+            GUESS_LOG.value += `${REMAINING_TRIES}/${RETRIES} ${key}\n`;
+
+            button.disabled = true;
+
+            if (correctGuess === true || REMAINING_TRIES <= 0) {
+                SEARCH.parentElement.hidden = true;
+                ORIGINALIMAGE_DISPLAY.firstChild.hidden = false;
+            }
+        }
+
+        function setSearchButtonsVisibility(searchText) {
+            let visibleButtons = 0;
+            for (const button of SEARCH_RESULTS.children) {
+                const match = button.textContent.includes(searchText);
+
+                button.hidden = !match;
+
+                if (match) visibleButtons++;
+            }
+            SEARCH_RESULTS.style.display = visibleButtons ? "block" : "none";
+        }
+
+        function searchInputChange() {
             const searchText = SEARCH_INPUT.value.toLowerCase();
 
-            SEARCH_RESULTS.replaceChildren();
+            if (!searchText) {
+                SEARCH_RESULTS.style.display = "none";
+                return;
+            }
 
-            ORIGINALIMAGE_DISPLAY.firstChild.hidden = searchText !== randomKey.toLowerCase();
+            setSearchButtonsVisibility(searchText);
+        }
 
-            if (searchText === "") { SEARCH_RESULTS.style.display = "none"; return; }
+        function searchButtonClick() {
+            const open = SEARCH_RESULTS.style.display === "block";
 
-            const matches = KEYS.filter(key => key.toLowerCase().includes(searchText));
+            // Close if already open
+            if (open) {
+                SEARCH_RESULTS.style.display = "none";
+                return;
+            }
 
-            matches.forEach(key => {
-
-                const result = document.createElement("button");
-
-                result.className = "searchResult";
-                result.type = "button";
-                result.textContent = key;
-
-                result.addEventListener("click", () => {
-                    SEARCH_INPUT.value = key;
-                    SEARCH_RESULTS.style.display = "none";
-
-                    const correct = key.toLowerCase() === randomKey.toLowerCase();
-
-                    ORIGINALIMAGE_DISPLAY.firstChild.hidden = !correct;
-
-                    GUESS_LOG.value += `${remainingTries - 1}/${RETRIES} ${key}\n`;
-
-                    remainingTries--;
-
-                    if (remainingTries <= 0) {
-                        ORIGINALIMAGE_DISPLAY.firstChild.hidden = false;
-                        SEARCH.parentElement.hidden = true;
-                    }
-
-                    if (correct) {
-                        SEARCH.parentElement.hidden = true;
-                    }
-
-                });
-
-                SEARCH_RESULTS.appendChild(result);
-            });
-
-            SEARCH_RESULTS.style.display = matches.length > 0 ? "block" : "none";
-        });
-
-
-        SEARCH_BUTTON.addEventListener("click", () => {
-
-            const isOpen = SEARCH_RESULTS.style.display === "block";
-
-            if (isOpen) { SEARCH_RESULTS.style.display = "none"; return; }
-
-            SEARCH_RESULTS.replaceChildren();
-
-            KEYS.forEach(key => {
-
-                const result = document.createElement("button");
-
-                result.className = "searchResult";
-                result.type = "button";
-                result.textContent = key;
-
-                result.addEventListener("click", () => {
-                    SEARCH_INPUT.value = key;
-                    SEARCH_RESULTS.style.display = "none";
-
-                    const correct = key.toLowerCase() === randomKey.toLowerCase();
-
-                    ORIGINALIMAGE_DISPLAY.firstChild.hidden = !correct;
-
-                    GUESS_LOG.value += `${remainingTries - 1}/${RETRIES} ${key}\n`;
-
-                    remainingTries--;
-
-                    if (remainingTries <= 0) {
-                        ORIGINALIMAGE_DISPLAY.firstChild.hidden = false;
-                        SEARCH.parentElement.hidden = true;
-                    }
-
-                    if (correct) {
-                        SEARCH.parentElement.hidden = true;
-                    }
-
-                });
-
-                SEARCH_RESULTS.appendChild(result);
-            });
+            // Show every button.
+            for (const button of SEARCH_RESULTS.children) {
+                button.hidden = false;
+            }
 
             SEARCH_RESULTS.style.display = "block";
-        });
+        }
 
+        // ##############################################################################################
 
         document.addEventListener("click", event => {
             if (!SEARCH.contains(event.target)) { SEARCH_RESULTS.style.display = "none"; }
         });
-
-
-        //-------------------------------------------------------------------------------
-        //-------------------------------------------------------------------------------
-        //-------------------------------------------------------------------------------
-
-
-
-
 
     </script>
 </body>
