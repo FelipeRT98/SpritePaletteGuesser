@@ -1,19 +1,584 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
 
     <title>Sprite Palette Guesser</title>
-    <meta name="application-name" content="Sprite Palette Guesser">
-    <meta name="version" content="1.0">
-    <link rel="icon" type="image/svg" href="./SpritePaletteGuesser-Icon.svg">
+    <meta name="application-name" content="Sprite Palette Guesser" />
+    <meta name="version" content="1.0" />
+    <link rel="icon" type="image/svg" href="./SpritePaletteGuesser-Icon.svg" />
 
-    <meta name="author" content="Felipe Rodrigues">
-    <meta name="description" content="">
-    <meta name="keywords" content="HTML, CSS, JavaScript, web">
+    <meta name="author" content="Felipe Rodrigues" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="HTML, CSS, JavaScript, web, mobile" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Courier New", monospace;
+            font-size: 16px;
+            font-weight: normal;
+            border: none;
+        }
+
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            width: 100%;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+
+        /* Real screen */
+        #screen {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            background-image: linear-gradient(to bottom, black, whitesmoke, white);
+        }
+
+        /* Virtual internal resolution */
+        #app {
+            width: 1600px;
+            height: 900px;
+            position: absolute;
+            transform-origin: top left;
+            background-image: linear-gradient(to bottom, black, white);
+            color: white;
+        }
+
+        h1 {
+            font-weight: 1000;
+            font-size: 40px;
+            text-align: center;
+        }
+
+        hr {
+            margin: 1ch;
+        }
+
+        table {
+            width: 900px;
+            height: 100%;
+            position: relative;
+
+            margin-left: auto;
+            margin-right: auto;
+
+            border-collapse: collapse;
+        }
+
+        td {
+            text-align: center;
+            vertical-align: middle;
+            min-width: 450px;
+            width: 450px;
+            max-width: 450px;
+            border: 1px solid grey;
+        }
+
+        td.top {
+            vertical-align: top;
+        }
+
+
+
+
+        table {
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            text-align: center;
+        }
+
+        th {
+            background: whitesmoke;
+            white-space: nowrap;
+        }
+
+        .cellVerticalGap {
+            border: none;
+            background: none;
+            padding: 0ch 2ch;
+        }
+
+        hr {
+            margin: 1ch;
+        }
+
+        .preview {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: contain;
+            display: block;
+        }
+
+        button {
+            border: none;
+            background: none;
+            background-image: none;
+        }
+
+
+        .clickable {
+            background-image: linear-gradient(white, lightblue, cyan);
+            font-weight: bold;
+        }
+
+        .clickable:not(:disabled):hover,
+        .clickable:not(:disabled):focus {
+            background-image: none;
+
+            background-color: blue;
+            color: yellow;
+
+            cursor: pointer;
+        }
+
+        .clickable:active {
+            background: yellow !important;
+            color: blue !important;
+        }
+
+        select {
+            border: 0px;
+            border-style: none;
+        }
+
+        select.clickable option {
+            background-color: white;
+            color: black;
+        }
+
+        select.clickable option:checked {
+            background-color: lightgrey;
+            color: black;
+        }
+
+        select {
+            font-size: 2ch;
+        }
+
+        #resetButton {
+            font-size: 2ch;
+        }
+
+        .imageDisplay {
+            width: 300px;
+            height: 300px;
+
+            margin-left: auto;
+            margin-right: auto;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            overflow: hidden;
+        }
+
+        .imageDisplay img {
+            width: 100%;
+            height: 100%;
+
+            max-width: 100%;
+            max-height: 100%;
+
+            object-fit: contain;
+
+            image-rendering: pixelated;
+        }
+
+        #search {
+            position: relative;
+
+            width: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            margin: 0 auto;
+        }
+
+        #searchInput {
+            width: 100%;
+            height: 4ch;
+        }
+
+        #searchButton {
+            position: absolute;
+
+            top: 0;
+            right: 0;
+
+            width: 4ch;
+            height: 4ch;
+
+            cursor: pointer;
+        }
+
+        #searchResults {
+            position: absolute;
+
+            top: 4ch;
+            left: 0;
+
+            width: 100%;
+            max-height: 300px;
+
+            overflow-y: auto;
+
+            display: none;
+
+            z-index: 1000;
+        }
+
+        .searchResult {
+            width: 100%;
+            height: 4ch;
+
+            background: white;
+
+            text-align: left;
+
+            cursor: pointer;
+        }
+
+        .searchResult:hover {
+            background: blue;
+            color: yellow;
+            font-weight: bold;
+        }
+
+        #guessLog {
+            width: 300px;
+            height: 300px;
+
+            resize: none;
+
+            padding: 10px;
+
+            background: none;
+            color: white;
+
+            overflow-y: auto;
+        }
+    </style>
 </head>
 
-<body></body>
+<body>
+    <div id="screen">
+        <div id="app">
+            <h1>Sprite Palette Guesser</h1>
+
+            <table>
+                <tr>
+                    <td>
+                        <select name="dataDropdown" id="dataDropdown" class="clickable" onchange="prepareGame()">
+                            <option value="0" selected>---</option>
+                            <option value="dataPokemonEmeraldPokemonFront">Pokemon Emerald - Pokemon Front</option>
+                        </select>
+                    </td>
+                    <td class="hidable" hidden>
+                        <button id="resetButton" class="clickable" onclick="newGuess()">New Guess</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="hidable" hidden>
+                        <div class="imageDisplay" id="colorMapImageDisplay"></div>
+                    </td>
+                    <td class="hidable" hidden>
+                        <textarea id="guessLog" readonly tabindex="-1" style="pointer-events: none;"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="hidable" hidden>
+                        <div class="imageDisplay" id="originalImageDisplay" style="margin: 0 auto;"></div>
+                    </td>
+                    <td class="hidable top" hidden>
+                        <div id="search">
+                            <input id="searchInput" type="text" autocomplete="off" placeholder="Search...">
+
+                            <button id="searchButton" type="button" aria-label="Show all" class="clickable">▼</button>
+
+                            <div id="searchResults"></div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+
+
+
+
+        </div>
+    </div>
+
+    <script src="./dataPokemonEmeraldPokemonFront.js"></script>
+
+    <script>
+
+        const app = document.getElementById("app");
+        const LANDSCAPE_WIDTH = 1600;
+        const LANDSCAPE_HEIGHT = 900;
+        const PORTRAIT_WIDTH = 900;
+        const PORTRAIT_HEIGHT = 1600;
+        function resizeApp() {
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+
+            const isPortrait = screenHeight > screenWidth;
+
+            const internalWidth = isPortrait ? PORTRAIT_WIDTH : LANDSCAPE_WIDTH;
+            const internalHeight = isPortrait ? PORTRAIT_HEIGHT : LANDSCAPE_HEIGHT;
+
+            /* * Update the virtual application's dimensions. */
+            app.style.width = `${internalWidth}px`;
+            app.style.height = `${internalHeight}px`;
+
+            /* * Scale while preserving aspect ratio. */
+            const scale = Math.min(screenWidth / internalWidth, screenHeight / internalHeight);
+
+            /* * Final displayed size. */
+            const scaledWidth = internalWidth * scale;
+            const scaledHeight = internalHeight * scale;
+
+            /* * Center horizontally and vertically. */
+            const offsetX = (screenWidth - scaledWidth) / 2;
+            const offsetY = (screenHeight - scaledHeight) / 2;
+            app.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+        }
+
+        window.addEventListener("resize", resizeApp);
+
+        resizeApp();
+
+
+
+        // ########################################################################################################################
+        // ########################################################################################################################
+        // ########################################################################################################################
+        // ########################################################################################################################
+        // ########################################################################################################################
+
+        const DATASETS = {
+            dataPokemonEmeraldPokemonFront: dataPokemonEmeraldPokemonFront,
+        };
+
+        const COLORMAPIMAGE_DISPLAY = document.getElementById("colorMapImageDisplay");
+        const ORIGINALIMAGE_DISPLAY = document.getElementById("originalImageDisplay");
+
+        const SEARCH = document.getElementById("search");
+        const SEARCH_INPUT = document.getElementById("searchInput");
+        const SEARCH_BUTTON = document.getElementById("searchButton");
+        const SEARCH_RESULTS = document.getElementById("searchResults");
+
+        const GUESS_LOG = document.getElementById("guessLog");
+        const RESET_BUTTON = document.getElementById("resetButton");
+
+        const DATA_DROPDOWN = document.getElementById("dataDropdown");
+
+        const RETRIES = 6;
+
+        const HIDABLE_ELEMENTS = Array.from(document.getElementsByClassName("hidable"));
+
+        let KEYS;
+        let DATA;
+        let remainingTries = RETRIES;
+        let randomKey;
+
+        //-------------------------------------------------------------------------------
+
+        function getRandomKey() {
+            return KEYS[Math.floor(Math.random() * KEYS.length)];
+        }
+
+        function showGame() {
+            HIDABLE_ELEMENTS.forEach((hidableElement) => {
+                hidableElement.hidden = false;
+            });
+        }
+
+        function hideGame() {
+            HIDABLE_ELEMENTS.forEach((hidableElement) => {
+                hidableElement.hidden = true;
+            });
+        }
+
+        function toggleGame() {
+            if (HIDABLE_ELEMENTS.every(element => element.hidden === true)) {
+                showGame();
+            }
+            else {
+                hideGame();
+            }
+        }
+
+        function prepareGame() {
+
+            if (DATA_DROPDOWN.value === "0") {
+                hideGame();
+                return;
+            }
+
+            DATA = DATASETS[DATA_DROPDOWN.value];
+
+            KEYS = Object.keys(DATA);
+
+            remainingTries = RETRIES;
+
+            newGuess();
+
+        }
+
+
+        function newGuess() {
+            randomKey = getRandomKey();
+            let object = DATA[randomKey];
+
+            const colorMapImageElement = new Image();
+            const originalImageElement = new Image();
+
+            colorMapImageElement.src = object.colorMap;
+            originalImageElement.src = object.image;
+
+            COLORMAPIMAGE_DISPLAY.replaceChildren(colorMapImageElement);
+            ORIGINALIMAGE_DISPLAY.replaceChildren(originalImageElement);
+
+            SEARCH_INPUT.value = "";
+            SEARCH_RESULTS.replaceChildren();
+            SEARCH_RESULTS.style.display = "none";
+
+            GUESS_LOG.value = "";
+
+            remainingTries = RETRIES;
+            originalImageElement.hidden = true;
+
+            colorMapImageElement.onload = () => {
+                colorMapImageElement.title =
+                    `⌜\n\n${colorMapImageElement.naturalWidth} x ${colorMapImageElement.naturalHeight}`;
+            };
+
+            showGame();
+        }
+
+        //-------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------
+
+
+        SEARCH_INPUT.addEventListener("input", () => {
+
+            const searchText = SEARCH_INPUT.value.toLowerCase();
+
+            SEARCH_RESULTS.replaceChildren();
+
+            ORIGINALIMAGE_DISPLAY.firstChild.hidden = searchText !== randomKey.toLowerCase();
+
+            if (searchText === "") { SEARCH_RESULTS.style.display = "none"; return; }
+
+            const matches = KEYS.filter(key => key.toLowerCase().includes(searchText));
+
+            matches.forEach(key => {
+
+                const result = document.createElement("button");
+
+                result.className = "searchResult";
+                result.type = "button";
+                result.textContent = key;
+
+                result.addEventListener("click", () => {
+                    SEARCH_INPUT.value = key;
+                    SEARCH_RESULTS.style.display = "none";
+
+                    const correct = key.toLowerCase() === randomKey.toLowerCase();
+
+                    ORIGINALIMAGE_DISPLAY.firstChild.hidden = !correct;
+
+                    GUESS_LOG.value += `${remainingTries - 1}/${RETRIES} ${key}\n`;
+
+                    remainingTries--;
+
+                    if (remainingTries <= 0) {
+                        ORIGINALIMAGE_DISPLAY.firstChild.hidden = false;
+                        SEARCH.parentElement.hidden = true;
+                    }
+
+                });
+
+                SEARCH_RESULTS.appendChild(result);
+            });
+
+            SEARCH_RESULTS.style.display = matches.length > 0 ? "block" : "none";
+        });
+
+
+        SEARCH_BUTTON.addEventListener("click", () => {
+
+            const isOpen = SEARCH_RESULTS.style.display === "block";
+
+            if (isOpen) { SEARCH_RESULTS.style.display = "none"; return; }
+
+            SEARCH_RESULTS.replaceChildren();
+
+            KEYS.forEach(key => {
+
+                const result = document.createElement("button");
+
+                result.className = "searchResult";
+                result.type = "button";
+                result.textContent = key;
+
+                result.addEventListener("click", () => {
+                    SEARCH_INPUT.value = key;
+                    SEARCH_RESULTS.style.display = "none";
+
+                    const correct = key.toLowerCase() === randomKey.toLowerCase();
+
+                    ORIGINALIMAGE_DISPLAY.firstChild.hidden = !correct;
+
+                    GUESS_LOG.value += `${remainingTries - 1}/${RETRIES} ${key}\n`;
+
+                    remainingTries--;
+
+                    if (remainingTries <= 0) {
+                        ORIGINALIMAGE_DISPLAY.firstChild.hidden = false;
+                        SEARCH.parentElement.hidden = true;
+                    }
+
+                });
+
+                SEARCH_RESULTS.appendChild(result);
+            });
+
+            SEARCH_RESULTS.style.display = "block";
+        });
+
+
+        document.addEventListener("click", event => {
+            if (!SEARCH.contains(event.target)) { SEARCH_RESULTS.style.display = "none"; }
+        });
+
+
+        //-------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------
+
+
+
+
+
+    </script>
+</body>
+
+</html>
