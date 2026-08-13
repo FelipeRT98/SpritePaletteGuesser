@@ -514,6 +514,10 @@
                         SEARCH.parentElement.hidden = true;
                     }
 
+                    if (correct) {
+                        SEARCH.parentElement.hidden = true;
+                    }
+
                 });
 
                 SEARCH_RESULTS.appendChild(result);
@@ -553,6 +557,10 @@
 
                     if (remainingTries <= 0) {
                         ORIGINALIMAGE_DISPLAY.firstChild.hidden = false;
+                        SEARCH.parentElement.hidden = true;
+                    }
+
+                    if (correct) {
                         SEARCH.parentElement.hidden = true;
                     }
 
