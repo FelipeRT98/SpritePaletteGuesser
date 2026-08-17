@@ -34,15 +34,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <style>
+        @font-face {
+            font-family: "Inconsolata";
+            src: url("Inconsolata-VariableFont_wdth,wght.ttf") format("truetype");
+            font-weight: 200 900;
+            font-stretch: 50% 200%;
+            font-style: normal;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Courier New", monospace;
-            font-size: 16px;
+            font-family: "Inconsolata";
+            font-size: 32px;
             font-weight: normal;
             border: none;
             border-style: none;
+            text-shadow: 1px 1px 2px #8FF2F7;
         }
 
         html,
@@ -60,7 +69,7 @@
             height: 100vh;
             position: relative;
             overflow: hidden;
-            background-image: linear-gradient(to bottom, black, whitesmoke, white);
+            background: black;
         }
 
         /* Virtual internal resolution */
@@ -69,30 +78,40 @@
             height: 900px;
             position: absolute;
             transform-origin: top left;
-            background-image: linear-gradient(to bottom, black, white);
-            color: white;
+            background-color: #808080;
         }
 
         h1 {
             font-weight: 1000;
-            font-size: 40px;
+            font-size: 5ch;
             text-align: center;
+
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+
+            color: white;
         }
 
         table {
             width: 900px;
-            height: 100%;
             position: relative;
 
             margin-left: auto;
             margin-right: auto;
-
+            vertical-align: top;
             border-collapse: collapse;
+        }
+
+        tr {
+            max-height: 300px;
         }
 
         td {
             text-align: center;
             vertical-align: middle;
+
+            max-height: 300px;
             min-width: 450px;
             width: 450px;
             max-width: 450px;
@@ -100,6 +119,15 @@
 
         td.top {
             vertical-align: top;
+        }
+
+        td.bottom {
+            vertical-align: bottom;
+        }
+
+        #attemptsText {
+            text-align: left;
+            color: white;
         }
 
         button {
@@ -111,6 +139,7 @@
         .clickable {
             background-image: linear-gradient(white, lightblue, cyan);
             font-weight: bold;
+            border: 1px solid #8FF2F7;
         }
 
         .clickable:not(:disabled):hover,
@@ -142,30 +171,33 @@
             font-size: 2ch;
         }
 
-        #resetButton {
+        #nextGuessButton,
+        #surrenderButton {
             font-size: 2ch;
         }
 
         .imageDisplay {
             width: 300px;
             height: 300px;
+            min-width: 300px;
+            min-height: 300px;
+            max-width: 300px;
+            max-height: 300px;
 
-            margin-left: auto;
-            margin-right: auto;
-
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            margin: 0 auto;
 
             overflow: hidden;
         }
 
         .imageDisplay img {
-            width: 100%;
-            height: 100%;
+            width: 300px;
+            height: 300px;
+            min-width: 300px;
+            min-height: 300px;
+            max-width: 300px;
+            max-height: 300px;
 
-            max-width: 100%;
-            max-height: 100%;
+            margin: auto;
 
             object-fit: contain;
 
@@ -175,17 +207,18 @@
         #search {
             position: relative;
 
-            width: 300px;
+            width: 450px;
             display: flex;
             justify-content: center;
             align-items: center;
+            border: 1px solid #8FF2F7;
 
             margin: 0 auto;
         }
 
         #searchInput {
             width: 100%;
-            height: 4ch;
+            height: 2ch;
         }
 
         #searchButton {
@@ -194,8 +227,8 @@
             top: 0;
             right: 0;
 
-            width: 4ch;
-            height: 4ch;
+            width: 2ch;
+            height: 2ch;
 
             cursor: pointer;
         }
@@ -203,22 +236,23 @@
         #searchResults {
             position: absolute;
 
-            top: 4ch;
+            top: 2ch;
             left: 0;
 
             width: 100%;
-            max-height: 300px;
+            max-height: 250px;
 
             overflow-y: auto;
 
             display: none;
+            border: 1px solid #8FF2F7;
 
             z-index: 1000;
         }
 
         .searchResult {
             width: 100%;
-            height: 4ch;
+            height: 2ch;
 
             background: white;
 
@@ -240,16 +274,16 @@
         }
 
         #guessLog {
-            width: 300px;
-            height: 300px;
+            width: 450px;
+            height: 250px;
+            max-height: 250px;
+            box-sizing: border-box;
 
             resize: none;
-
-            padding: 10px;
+            padding: 0px;
 
             background: none;
             color: white;
-
             overflow-y: auto;
         }
     </style>
@@ -261,14 +295,19 @@
             <h1>Sprite Palette Guesser</h1>
             <table>
                 <tr>
-                    <td>
+                    <td class="hidable" hidden style="padding: 10px 0px;">
+                        <button id="nextGuessButton" class="clickable" onclick="nextGuess()">Next Guess</button>
+                    </td>
+                    <td class="hidable" hidden style="padding: 10px 0px;">
+                        <button id="surrenderButton" class="clickable" onclick="surrenderGuess()">Surrender</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 10px 0px;">
                         <select name="dataDropdown" id="dataDropdown" class="clickable" onchange="prepareGame()">
                             <option value="0" selected>---</option>
                             <option value="dataPokemonEmeraldPokemonFront">Pokemon Emerald - Pokemon Front</option>
                         </select>
-                    </td>
-                    <td class="hidable" hidden>
-                        <button id="resetButton" class="clickable" onclick="newGuess()">New Guess</button>
                     </td>
                 </tr>
                 <tr>
@@ -276,12 +315,13 @@
                         <div class="imageDisplay" id="colorMapImageDisplay"></div>
                     </td>
                     <td class="hidable" hidden>
+                        <p id="attemptsText"></p>
                         <textarea id="guessLog" readonly tabindex="-1" style="pointer-events: none;"></textarea>
                     </td>
                 </tr>
                 <tr>
-                    <td class="hidable" hidden>
-                        <div class="imageDisplay" id="originalImageDisplay" style="margin: 0 auto;"></div>
+                    <td class="hidable top" hidden>
+                        <div class="imageDisplay" id="originalImageDisplay"></div>
                     </td>
                     <td class="hidable top" hidden>
                         <div id="search">
@@ -355,18 +395,21 @@
         const SEARCH_BUTTON = document.getElementById("searchButton");
         const SEARCH_RESULTS = document.getElementById("searchResults");
 
+        const ATTEMPTS_TEXT = document.getElementById("attemptsText");
         const GUESS_LOG = document.getElementById("guessLog");
-        const RESET_BUTTON = document.getElementById("resetButton");
+
+        const NEXTGUESS_BUTTON = document.getElementById("nextGuessButton");
+        const SURRENDER_BUTTON = document.getElementById("surrenderButton");
 
         const DATA_DROPDOWN = document.getElementById("dataDropdown");
 
-        const RETRIES = 6;
+        const MAX_ATTEMPTS = 6;
 
         const HIDABLE_ELEMENTS = Array.from(document.getElementsByClassName("hidable"));
 
         let KEYS;
         let DATA;
-        let REMAINING_TRIES = RETRIES;
+        let REMAINING_ATTEMPTS = MAX_ATTEMPTS;
         let RANDOM_KEY;
 
         // ##############################################################################################
@@ -407,16 +450,16 @@
 
             KEYS = Object.keys(DATA);
 
-            REMAINING_TRIES = RETRIES;
+            REMAINING_ATTEMPTS = MAX_ATTEMPTS;
 
-            newGuess();
+            nextGuess();
 
             fillSearchDropdown();
 
         }
 
 
-        function newGuess() {
+        function nextGuess() {
             RANDOM_KEY = getRandomKey();
             const object = DATA[RANDOM_KEY];
 
@@ -431,7 +474,8 @@
 
             GUESS_LOG.value = "";
 
-            REMAINING_TRIES = RETRIES;
+            REMAINING_ATTEMPTS = MAX_ATTEMPTS;
+            ATTEMPTS_TEXT.textContent = `Attempts left: ${REMAINING_ATTEMPTS}`;
             originalImageElement.hidden = true;
 
             colorMapImageElement.onload = () => {
@@ -447,6 +491,18 @@
 
             SEARCH_INPUT.focus();
         }
+
+        function surrenderGuess() {
+            ORIGINALIMAGE_DISPLAY.hidden = false;
+            SEARCH.parentElement.hidden = true;
+            ORIGINALIMAGE_DISPLAY.firstChild.hidden = false;
+
+            REMAINING_ATTEMPTS = 0;
+            ATTEMPTS_TEXT.textContent = `Attempts left: ${REMAINING_ATTEMPTS}`;
+            GUESS_LOG.value += `* ${RANDOM_KEY}\n`;
+            SURRENDER_BUTTON.parentElement.hidden = true;
+        }
+
 
         function fillSearchDropdown() {
             SEARCH_RESULTS.replaceChildren();
@@ -467,14 +523,17 @@
 
             const correctGuess = (SEARCH_INPUT.value === RANDOM_KEY);
 
-            --REMAINING_TRIES;
-            GUESS_LOG.value += `${REMAINING_TRIES}/${RETRIES} ${key}\n`;
+            --REMAINING_ATTEMPTS;
+
+            ATTEMPTS_TEXT.textContent = `Attempts left: ${REMAINING_ATTEMPTS}`;
+            GUESS_LOG.value += `${correctGuess ? "v" : "x"} ${key}\n`;
 
             button.disabled = true;
 
-            if (correctGuess === true || REMAINING_TRIES <= 0) {
+            if (correctGuess === true || REMAINING_ATTEMPTS <= 0) {
                 SEARCH.parentElement.hidden = true;
                 ORIGINALIMAGE_DISPLAY.firstChild.hidden = false;
+                SURRENDER_BUTTON.parentElement.hidden = true;
             }
         }
 
