@@ -10,7 +10,7 @@
 
 This is a browser game where you identify sprites from their color palette.
 
-![example1.png](.github/example1.png?)
+![example1.png](.github/example11.png)
 
 ## Usage instructions
 
