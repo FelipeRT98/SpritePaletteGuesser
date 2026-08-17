@@ -275,8 +275,8 @@
 
         #guessLog {
             width: 450px;
-            height: 250px;
-            max-height: 250px;
+            height: 265px;
+            max-height: 265px;
             box-sizing: border-box;
 
             resize: none;
@@ -534,6 +534,10 @@
                 SEARCH.parentElement.hidden = true;
                 ORIGINALIMAGE_DISPLAY.firstChild.hidden = false;
                 SURRENDER_BUTTON.parentElement.hidden = true;
+            }
+
+            if (correctGuess === false && REMAINING_ATTEMPTS <= 0) {
+                GUESS_LOG.value += `* ${RANDOM_KEY}\n`;
             }
         }
 
