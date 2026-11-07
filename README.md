@@ -1,5 +1,7 @@
 # Sprite Palette Guesser
 
+<span style="color: cyan; font-size: 48px;">∰</span>
+
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 
 ![JavaScript](https://img.shields.io/badge/JavaScript-grey?logo=javascript)
