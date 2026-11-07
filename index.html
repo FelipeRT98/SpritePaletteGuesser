@@ -1,19 +1,941 @@
-<!DOCTYPE html>
+<!--
+    Sprite Palette Guesser
+    This is a browser game where you identify sprites from their color palette.
+    Copyright (C) 2026  Felipe R.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!doctype html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-
+    <meta charset="UTF-8" />
     <title>Sprite Palette Guesser</title>
-    <meta name="application-name" content="Sprite Palette Guesser">
-    <meta name="version" content="1.0">
-    <link rel="icon" type="image/svg" href="./SpritePaletteGuesser-Icon.svg">
+    <meta name="application-name" content="Sprite Palette Guesser" />
+    <meta name="version" content="1.2" />
 
-    <meta name="author" content="Felipe Rodrigues">
-    <meta name="description" content="">
-    <meta name="keywords" content="HTML, CSS, JavaScript, web">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2290%25%22 font-size=%2290%22 text-anchor=%22middle%22 fill=%22cyan%22>∰</text></svg>" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Felipe Rodrigues" />
+    <meta name="description" content="A browser game where you identify sprites from their color palette." />
+    <meta name="keywords" content="sprite, palette, pixel art, video games, guesser, guessing game, Pokémon, HTML, CSS, JavaScript, browser, quiz, sprite sheet, gaming, web, pixel" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <style>
+        @font-face {
+            font-family: "Inconsolata";
+            src: url("Inconsolata-VariableFont_wdth,wght.ttf") format("truetype");
+            font-weight: 200 900;
+            font-stretch: 50% 200%;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Inconsolata";
+            font-size: 32px;
+            font-weight: normal;
+            border: none;
+            border-style: none;
+            text-shadow: 1px 1px 2px #8FF2F7;
+        }
+
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            width: 100%;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+
+        /* Real screen */
+        #screen {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            background: black;
+        }
+
+        /* Virtual internal resolution */
+        #app {
+            width: 1600px;
+            height: 900px;
+            position: absolute;
+            transform-origin: top left;
+            background-color: #808080;
+        }
+
+        h1 {
+            font-weight: 1000;
+            font-size: 5ch;
+            text-align: center;
+
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+
+            color: white;
+        }
+
+        table {
+            width: 900px;
+            position: relative;
+
+            margin-left: auto;
+            margin-right: auto;
+            vertical-align: top;
+            border-collapse: collapse;
+        }
+
+        tr {
+            max-height: 300px;
+        }
+
+        td {
+            text-align: center;
+            vertical-align: middle;
+
+            max-height: 300px;
+            min-width: 450px;
+            width: 450px;
+            max-width: 450px;
+        }
+
+        td.top {
+            vertical-align: top;
+        }
+
+        td.bottom {
+            vertical-align: bottom;
+        }
+
+        #attemptsText {
+            text-align: left;
+            color: white;
+        }
+
+        button {
+            border: none;
+            background: none;
+            background-image: none;
+        }
+
+        .clickable {
+            background-image: linear-gradient(white, lightblue, cyan);
+            font-weight: bold;
+            border: 1px solid #8FF2F7;
+        }
+
+        .clickable:not(:disabled):hover,
+        .clickable:not(:disabled):focus {
+            background-image: none;
+
+            background-color: blue;
+            color: yellow;
+
+            cursor: pointer;
+        }
+
+        .clickable:active {
+            background: yellow !important;
+            color: blue !important;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        .clickable:disabled {
+            opacity: 0.5;
+        }
+
+        #nextGuessButton,
+        #surrenderButton,
+        #menuButton {
+            font-size: 2ch;
+        }
+
+        #menuButton {
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+        }
+
+        /* Start screen */
+        #setup {
+            max-width: 1520px;
+            margin: 10px auto 0;
+            padding: 0 20px;
+            color: white;
+        }
+
+        #setup,
+        #setup * {
+            font-size: 20px;
+        }
+
+        #setup .intro {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        #setupOptions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        #setup fieldset {
+            flex: 1 1 600px;
+            min-width: 0;
+            padding: 8px 14px 12px;
+            border: 1px solid #8FF2F7;
+        }
+
+        #setup legend {
+            padding: 0 6px;
+            font-weight: bold;
+        }
+
+        #setup .help {
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        #setup pre {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.35);
+            overflow-x: auto;
+            font-size: 16px;
+            text-align: left;
+        }
+
+        #setup .row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        #setup .row button {
+            flex: 0 0 210px;
+            height: 34px;
+        }
+
+        #setup .row input[type="text"] {
+            flex: 1 1 auto;
+            min-width: 0;
+            height: 34px;
+            padding: 0 6px;
+            border: 1px solid #8FF2F7;
+            background: white;
+            color: black;
+            text-shadow: none;
+        }
+
+        #setup .status {
+            min-height: 26px;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        #setup .status.error {
+            color: #FFB3B3;
+        }
+
+        #setup .startButton {
+            height: 36px;
+            padding: 0 28px;
+        }
+
+        .imageDisplay {
+            width: 300px;
+            height: 300px;
+            min-width: 300px;
+            min-height: 300px;
+            max-width: 300px;
+            max-height: 300px;
+
+            margin: 0 auto;
+
+            overflow: hidden;
+        }
+
+        .imageDisplay img {
+            width: 300px;
+            height: 300px;
+            min-width: 300px;
+            min-height: 300px;
+            max-width: 300px;
+            max-height: 300px;
+
+            margin: auto;
+
+            object-fit: contain;
+
+            image-rendering: pixelated;
+        }
+
+        #search {
+            position: relative;
+
+            width: 450px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #8FF2F7;
+
+            margin: 0 auto;
+        }
+
+        #searchInput {
+            width: 100%;
+            height: 2ch;
+        }
+
+        #searchButton {
+            position: absolute;
+
+            top: 0;
+            right: 0;
+
+            width: 2ch;
+            height: 2ch;
+
+            cursor: pointer;
+        }
+
+        #searchResults {
+            position: absolute;
+
+            top: 2ch;
+            left: 0;
+
+            width: 100%;
+            max-height: 250px;
+
+            overflow-y: auto;
+
+            display: none;
+            border: 1px solid #8FF2F7;
+
+            z-index: 1000;
+        }
+
+        .searchResult {
+            width: 100%;
+            height: 2ch;
+
+            background: white;
+
+            text-align: left;
+
+            cursor: pointer;
+        }
+
+        .searchResult:not(:disabled):hover {
+            background: blue;
+            color: yellow;
+            font-weight: bold;
+        }
+
+        :disabled:hover,
+        :disabled:focus,
+        :disabled:active {
+            cursor: default;
+        }
+
+        #guessLog {
+            width: 450px;
+            height: 265px;
+            max-height: 265px;
+            box-sizing: border-box;
+
+            resize: none;
+            padding: 0px;
+
+            background: none;
+            color: white;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 
-<body></body>
+<body>
+    <div id="screen">
+        <div id="app">
+            <h1>Sprite Palette Guesser</h1>
+
+            <div id="setup">
+                <p class="intro">Load your own sprites to play. Files are read locally by your browser and are never uploaded.</p>
+
+                <div id="setupOptions">
+                    <fieldset>
+                        <legend>Option 1 - Folders</legend>
+                        <p class="help">
+                            Choose a folder with the original sprites and a folder with their color maps (the clue shown to
+                            the player). Files are paired by name, ignoring the extension, e.g. <b>image_name.png</b> in
+                            both folders. That name is the answer. Accepted: PNG, GIF, WebP, JPG, BMP. Subfolders are included.
+                        </p>
+                        <div class="row">
+                            <button type="button" id="imagesFolderButton" class="clickable">Images folder...</button>
+                            <input type="text" id="imagesFolderText" readonly tabindex="-1" placeholder="No folder selected">
+                        </div>
+                        <div class="row">
+                            <button type="button" id="colorMapsFolderButton" class="clickable">Color maps folder...</button>
+                            <input type="text" id="colorMapsFolderText" readonly tabindex="-1" placeholder="No folder selected">
+                        </div>
+                        <p class="status" id="foldersStatus"></p>
+                        <button type="button" id="foldersStartButton" class="clickable startButton" disabled>Start</button>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Option 2 - JS file</legend>
+                        <p class="help">
+                            Choose a .js (or .json) file that declares one object. Each key is the answer; each value has an
+                            <b>image</b> and a <b>colorMap</b>, both as data URLs (or image URLs):
+                        </p>
+                        <pre>const myData = {
+  "image_name": {
+    image: "data:image/png;base64,&hellip;",
+    colorMap: "data:image/png;base64,&hellip;",
+  },
+};</pre>
+                        <div class="row">
+                            <button type="button" id="jsFileButton" class="clickable">JS file...</button>
+                            <input type="text" id="jsFileText" readonly tabindex="-1" placeholder="No file selected">
+                        </div>
+                        <p class="status" id="jsFileStatus">Only load files you trust: the page runs the file's code.</p>
+                        <button type="button" id="jsStartButton" class="clickable startButton" disabled>Start</button>
+                    </fieldset>
+                </div>
+
+                <input type="file" id="imagesFolderInput" webkitdirectory multiple hidden>
+                <input type="file" id="colorMapsFolderInput" webkitdirectory multiple hidden>
+                <input type="file" id="jsFileInput" accept=".js,.json,text/javascript,application/json" hidden>
+            </div>
+
+            <button type="button" id="menuButton" class="clickable hidable" hidden onclick="hideGame()">Menu</button>
+
+            <div id="game">
+                <table>
+                    <tr>
+                        <td class="hidable" hidden style="padding: 10px 0px;">
+                            <button id="nextGuessButton" class="clickable" onclick="nextGuess()">Next Guess</button>
+                        </td>
+                        <td class="hidable" hidden style="padding: 10px 0px;">
+                            <button id="surrenderButton" class="clickable" onclick="surrenderGuess()">Surrender</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="hidable" hidden>
+                            <div class="imageDisplay" id="colorMapImageDisplay"></div>
+                        </td>
+                        <td class="hidable" hidden>
+                            <p id="attemptsText"></p>
+                            <textarea id="guessLog" readonly tabindex="-1" style="pointer-events: none;"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="hidable top" hidden>
+                            <div class="imageDisplay" id="originalImageDisplay"></div>
+                        </td>
+                        <td class="hidable top" hidden>
+                            <div id="search">
+                                <input id="searchInput" oninput="searchInputChange()" type="text" autocomplete="off" placeholder="Search...">
+
+                                <button id="searchButton" type="button" onclick="searchButtonClick()" aria-label="Show all" class="clickable">▼</button>
+
+                                <div id="searchResults"></div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const app = document.getElementById("app");
+        const LANDSCAPE_WIDTH = 1600;
+        const LANDSCAPE_HEIGHT = 900;
+        const PORTRAIT_WIDTH = 900;
+        const PORTRAIT_HEIGHT = 1600;
+
+        function resizeApp() {
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+
+            const isPortrait = screenHeight > screenWidth;
+
+            const internalWidth = isPortrait ? PORTRAIT_WIDTH : LANDSCAPE_WIDTH;
+            const internalHeight = isPortrait ? PORTRAIT_HEIGHT : LANDSCAPE_HEIGHT;
+
+            /* * Update the virtual application's dimensions. */
+            app.style.width = `${internalWidth}px`;
+            app.style.height = `${internalHeight}px`;
+
+            /* * Scale while preserving aspect ratio. */
+            const scale = Math.min(screenWidth / internalWidth, screenHeight / internalHeight);
+
+            /* * Final displayed size. */
+            const scaledWidth = internalWidth * scale;
+            const scaledHeight = internalHeight * scale;
+
+            /* * Center horizontally and vertically. */
+            const offsetX = (screenWidth - scaledWidth) / 2;
+            const offsetY = (screenHeight - scaledHeight) / 2;
+            app.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+        }
+
+        window.addEventListener("resize", resizeApp);
+
+        resizeApp();
+
+        // ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+        // ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+        // ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+        // ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+        // ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+
+        const COLORMAPIMAGE_DISPLAY = document.getElementById("colorMapImageDisplay");
+        const ORIGINALIMAGE_DISPLAY = document.getElementById("originalImageDisplay");
+
+        const SEARCH = document.getElementById("search");
+        const SEARCH_INPUT = document.getElementById("searchInput");
+        const SEARCH_BUTTON = document.getElementById("searchButton");
+        const SEARCH_RESULTS = document.getElementById("searchResults");
+
+        const ATTEMPTS_TEXT = document.getElementById("attemptsText");
+        const GUESS_LOG = document.getElementById("guessLog");
+
+        const NEXTGUESS_BUTTON = document.getElementById("nextGuessButton");
+        const SURRENDER_BUTTON = document.getElementById("surrenderButton");
+
+        const MAX_ATTEMPTS = 6;
+
+        const HIDABLE_ELEMENTS = Array.from(document.getElementsByClassName("hidable"));
+
+        let KEYS;
+        let DATA;
+        let REMAINING_ATTEMPTS = MAX_ATTEMPTS;
+        let RANDOM_KEY;
+
+        // ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+
+        let colorMapImageElement = document.createElement("img");
+        let originalImageElement = document.createElement("img");
+
+        // ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+        // ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+        // ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+        // ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+        // ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+
+        function getRandomKey() {
+            return KEYS[Math.floor(Math.random() * KEYS.length)];
+        }
+
+        // Shows the game screen exactly as it was left (used to resume after the menu).
+        function showGameScreen() {
+            SETUP.hidden = true;
+            GAME.hidden = false;
+            MENU_BUTTON.hidden = false;
+        }
+
+        // Shows the game screen and resets every game element to visible (new guess).
+        function showGame() {
+            HIDABLE_ELEMENTS.forEach((hidableElement) => {
+                hidableElement.hidden = false;
+            });
+            showGameScreen();
+        }
+
+        // Goes back to the start screen WITHOUT touching the game state.
+        function hideGame() {
+            GAME.hidden = true;
+            MENU_BUTTON.hidden = true;
+            SETUP.hidden = false;
+        }
+
+        // `data` is an object: { answer: { image: url, colorMap: url }, ... }
+        function startGame(data, signature) {
+
+            DATA = data;
+            activeSignature = signature;
+
+            KEYS = Object.keys(DATA);
+
+            REMAINING_ATTEMPTS = MAX_ATTEMPTS;
+
+            nextGuess();
+
+            fillSearchDropdown();
+
+        }
+
+
+        function nextGuess() {
+            RANDOM_KEY = getRandomKey();
+            const object = DATA[RANDOM_KEY];
+
+            colorMapImageElement.src = object.colorMap;
+            originalImageElement.src = object.image;
+
+            COLORMAPIMAGE_DISPLAY.replaceChildren(colorMapImageElement);
+            ORIGINALIMAGE_DISPLAY.replaceChildren(originalImageElement);
+
+            SEARCH_INPUT.value = "";
+            SEARCH_RESULTS.style.display = "none";
+
+            GUESS_LOG.value = "";
+
+            REMAINING_ATTEMPTS = MAX_ATTEMPTS;
+            ATTEMPTS_TEXT.textContent = `Attempts left: ${REMAINING_ATTEMPTS}`;
+            originalImageElement.hidden = true;
+
+            colorMapImageElement.onload = () => {
+                colorMapImageElement.title =
+                    `⌜\n\n${colorMapImageElement.naturalWidth} x ${colorMapImageElement.naturalHeight}`;
+            };
+
+            showGame();
+
+            SEARCH_RESULTS.querySelectorAll(":disabled").forEach(button => {
+                button.disabled = false;
+            });
+
+            SEARCH_INPUT.focus();
+        }
+
+        function surrenderGuess() {
+            ORIGINALIMAGE_DISPLAY.hidden = false;
+            SEARCH.parentElement.hidden = true;
+            ORIGINALIMAGE_DISPLAY.firstChild.hidden = false;
+
+            REMAINING_ATTEMPTS = 0;
+            ATTEMPTS_TEXT.textContent = `Attempts left: ${REMAINING_ATTEMPTS}`;
+            GUESS_LOG.value += `* ${RANDOM_KEY}\n`;
+            SURRENDER_BUTTON.parentElement.hidden = true;
+        }
+
+
+        function fillSearchDropdown() {
+            SEARCH_RESULTS.replaceChildren();
+            for (const key of KEYS) {
+                const button = document.createElement("button");
+                button.className = "searchResult";
+                button.type = "button";
+                button.textContent = key;
+                button.onclick = () => submitGuess(key, button);
+                button.hidden = true;
+                SEARCH_RESULTS.appendChild(button);
+            }
+        }
+
+        function submitGuess(key, button) {
+            SEARCH_INPUT.value = key;
+            SEARCH_RESULTS.style.display = "none";
+
+            const correctGuess = (SEARCH_INPUT.value === RANDOM_KEY);
+
+            --REMAINING_ATTEMPTS;
+
+            ATTEMPTS_TEXT.textContent = `Attempts left: ${REMAINING_ATTEMPTS}`;
+            GUESS_LOG.value += `${correctGuess ? "v" : "x"} ${key}\n`;
+
+            button.disabled = true;
+
+            if (correctGuess === true || REMAINING_ATTEMPTS <= 0) {
+                SEARCH.parentElement.hidden = true;
+                ORIGINALIMAGE_DISPLAY.firstChild.hidden = false;
+                SURRENDER_BUTTON.parentElement.hidden = true;
+            }
+
+            if (correctGuess === false && REMAINING_ATTEMPTS <= 0) {
+                GUESS_LOG.value += `* ${RANDOM_KEY}\n`;
+            }
+        }
+
+        function setSearchButtonsVisibility(searchText) {
+            let visibleButtons = 0;
+            for (const button of SEARCH_RESULTS.children) {
+                const match = button.textContent.includes(searchText);
+
+                button.hidden = !match;
+
+                if (match) visibleButtons++;
+            }
+            SEARCH_RESULTS.style.display = visibleButtons ? "block" : "none";
+        }
+
+        function searchInputChange() {
+            const searchText = SEARCH_INPUT.value.toLowerCase();
+
+            if (!searchText) {
+                SEARCH_RESULTS.style.display = "none";
+                return;
+            }
+
+            setSearchButtonsVisibility(searchText);
+        }
+
+        function searchButtonClick() {
+            const open = SEARCH_RESULTS.style.display === "block";
+
+            // Close if already open
+            if (open) {
+                SEARCH_RESULTS.style.display = "none";
+                return;
+            }
+
+            // Show every button.
+            for (const button of SEARCH_RESULTS.children) {
+                button.hidden = false;
+            }
+
+            SEARCH_RESULTS.style.display = "block";
+        }
+
+        // ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+
+        // Start screen: loading user-provided sprites
+
+        const IMAGE_EXTENSIONS = /\.(png|gif|webp|jpe?g|bmp)$/i;
+
+        const SETUP = document.getElementById("setup");
+        const GAME = document.getElementById("game");
+        const MENU_BUTTON = document.getElementById("menuButton");
+
+        const IMAGES_FOLDER_INPUT = document.getElementById("imagesFolderInput");
+        const IMAGES_FOLDER_TEXT = document.getElementById("imagesFolderText");
+        const COLORMAPS_FOLDER_INPUT = document.getElementById("colorMapsFolderInput");
+        const COLORMAPS_FOLDER_TEXT = document.getElementById("colorMapsFolderText");
+        const FOLDERS_STATUS = document.getElementById("foldersStatus");
+        const FOLDERS_START_BUTTON = document.getElementById("foldersStartButton");
+
+        const JS_FILE_INPUT = document.getElementById("jsFileInput");
+        const JS_FILE_TEXT = document.getElementById("jsFileText");
+        const JS_FILE_STATUS = document.getElementById("jsFileStatus");
+        const JS_START_BUTTON = document.getElementById("jsStartButton");
+
+        let imageFiles = new Map();    // lowercase name -> { name, file }
+        let colorMapFiles = new Map(); // lowercase name -> { name, file }
+        let jsData = null;
+        let activeObjectUrls = [];
+
+        // A signature identifies the loaded data. If the player starts again with
+        // the same signature as the running game, the game is resumed, not reset.
+        let activeSignature = null;
+        let folderSignature = null;
+        let jsSignature = null;
+
+        function naturalCompare(a, b) {
+            return a.localeCompare(b, undefined, { numeric: true });
+        }
+
+        function setStatus(element, message, isError) {
+            element.textContent = message;
+            element.classList.toggle("error", isError);
+        }
+
+        function revokeObjectUrls() {
+            activeObjectUrls.forEach(url => URL.revokeObjectURL(url));
+            activeObjectUrls = [];
+        }
+
+        function refreshStartLabels() {
+            FOLDERS_START_BUTTON.textContent = (folderSignature && folderSignature === activeSignature) ? "Resume" : "Start";
+            JS_START_BUTTON.textContent = (jsSignature && jsSignature === activeSignature) ? "Resume" : "Start";
+        }
+
+        // ----- Option 1: folders -----
+
+        function readFolder(input, textBox) {
+            const allFiles = Array.from(input.files);
+            const map = new Map();
+
+            for (const file of allFiles) {
+                if (!IMAGE_EXTENSIONS.test(file.name)) continue;
+                const name = file.name.replace(/\.[^.]+$/, "");
+                map.set(name.toLowerCase(), { name, file });
+            }
+
+            textBox.value = allFiles.length
+                ? `${allFiles[0].webkitRelativePath.split("/")[0]}/  (${map.size} images)`
+                : "";
+
+            return map;
+        }
+
+        function getFolderMatches() {
+            const matches = [];
+            for (const [key, image] of imageFiles) {
+                const colorMap = colorMapFiles.get(key);
+                if (colorMap) matches.push({ name: image.name, image: image.file, colorMap: colorMap.file });
+            }
+            return matches.sort((a, b) => naturalCompare(a.name, b.name));
+        }
+
+        function updateFoldersStatus() {
+            const matches = getFolderMatches();
+            FOLDERS_START_BUTTON.disabled = matches.length === 0;
+
+            folderSignature = matches.length
+                ? "folders:" + matches.map(m => [
+                    m.name,
+                    m.image.name, m.image.size, m.image.lastModified,
+                    m.colorMap.name, m.colorMap.size, m.colorMap.lastModified
+                ].join("/")).join("|")
+                : null;
+            refreshStartLabels();
+
+            if (!IMAGES_FOLDER_INPUT.files.length || !COLORMAPS_FOLDER_INPUT.files.length) {
+                setStatus(FOLDERS_STATUS, "Select both folders.", false);
+            } else if (imageFiles.size === 0 || colorMapFiles.size === 0) {
+                setStatus(FOLDERS_STATUS, "No images found in one of the folders.", true);
+            } else if (matches.length === 0) {
+                setStatus(FOLDERS_STATUS, "No file names match between the two folders.", true);
+            } else {
+                const skipped = (imageFiles.size - matches.length) + (colorMapFiles.size - matches.length);
+                setStatus(FOLDERS_STATUS,
+                    `${matches.length} sprites ready.` + (skipped ? ` ${skipped} unpaired files will be skipped.` : ""),
+                    false);
+            }
+        }
+
+        function startFromFolders() {
+            if (folderSignature === activeSignature) {
+                showGameScreen(); // same data: resume
+                return;
+            }
+
+            revokeObjectUrls();
+
+            const data = Object.create(null);
+            for (const match of getFolderMatches()) {
+                const image = URL.createObjectURL(match.image);
+                const colorMap = URL.createObjectURL(match.colorMap);
+                activeObjectUrls.push(image, colorMap);
+                data[match.name] = { image, colorMap };
+            }
+
+            startGame(data, folderSignature);
+            refreshStartLabels();
+        }
+
+        document.getElementById("imagesFolderButton").addEventListener("click", () => IMAGES_FOLDER_INPUT.click());
+        document.getElementById("colorMapsFolderButton").addEventListener("click", () => COLORMAPS_FOLDER_INPUT.click());
+
+        IMAGES_FOLDER_INPUT.addEventListener("change", () => {
+            imageFiles = readFolder(IMAGES_FOLDER_INPUT, IMAGES_FOLDER_TEXT);
+            updateFoldersStatus();
+        });
+
+        COLORMAPS_FOLDER_INPUT.addEventListener("change", () => {
+            colorMapFiles = readFolder(COLORMAPS_FOLDER_INPUT, COLORMAPS_FOLDER_TEXT);
+            updateFoldersStatus();
+        });
+
+        FOLDERS_START_BUTTON.addEventListener("click", startFromFolders);
+
+        // ----- Option 2: JS / JSON file -----
+
+        function parseDataFile(text) {
+            let data;
+
+            try {
+                data = JSON.parse(text);
+            } catch {
+                const declaration = text.match(/(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/);
+                if (!declaration) {
+                    throw new Error("Could not find a declaration like: const myData = { ... }");
+                }
+                data = new Function(`${text}\n;return ${declaration[1]};`)();
+            }
+
+            if (!data || typeof data !== "object" || Array.isArray(data)) {
+                throw new Error("The data must be an object: { answer: { image, colorMap } }");
+            }
+
+            const keys = Object.keys(data);
+            if (keys.length === 0) {
+                throw new Error("The data object is empty.");
+            }
+
+            for (const key of keys) {
+                const entry = data[key];
+                if (!entry || typeof entry.image !== "string" || typeof entry.colorMap !== "string") {
+                    throw new Error(`Entry "${key}" needs "image" and "colorMap" strings.`);
+                }
+            }
+
+            return data;
+        }
+
+        document.getElementById("jsFileButton").addEventListener("click", () => JS_FILE_INPUT.click());
+
+        JS_FILE_INPUT.addEventListener("change", async () => {
+            const file = JS_FILE_INPUT.files[0];
+
+            jsData = null;
+            jsSignature = null;
+            JS_START_BUTTON.disabled = true;
+            refreshStartLabels();
+            JS_FILE_TEXT.value = file ? file.name : "";
+
+            if (!file) {
+                setStatus(JS_FILE_STATUS, "Only load files you trust: the page runs the file's code.", false);
+                return;
+            }
+
+            try {
+                jsData = parseDataFile(await file.text());
+                jsSignature = `js:${file.name}:${file.size}:${file.lastModified}`;
+                JS_START_BUTTON.disabled = false;
+                refreshStartLabels();
+                setStatus(JS_FILE_STATUS, `${Object.keys(jsData).length} sprites ready.`, false);
+            } catch (error) {
+                setStatus(JS_FILE_STATUS, `Invalid file: ${error.message}`, true);
+            }
+        });
+
+        JS_START_BUTTON.addEventListener("click", () => {
+            if (jsSignature === activeSignature) {
+                showGameScreen(); // same data: resume
+                return;
+            }
+
+            revokeObjectUrls();
+            startGame(jsData, jsSignature);
+            refreshStartLabels();
+        });
+
+        // ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+
+        document.addEventListener("click", event => {
+            if (!SEARCH.contains(event.target)) { SEARCH_RESULTS.style.display = "none"; }
+        });
+
+    </script>
+</body>
+
+</html>
