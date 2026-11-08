@@ -10,7 +10,7 @@
 
 ## Description
 
-This is a browser game where you identify sprites from their color palette.
+A browser game about recognizing sprites from their palettes.
 
 ![image1.png](.github/image1.png)
 ![image2.png](.github/image2.png)
