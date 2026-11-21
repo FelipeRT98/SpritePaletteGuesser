@@ -1,6 +1,6 @@
 # Sprite Palette Guesser
 
-<span style="color: cyan; font-size: 48px;">∰</span>
+![Logo](./SpritePaletteGuesser-Icon.svg)
 
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 
