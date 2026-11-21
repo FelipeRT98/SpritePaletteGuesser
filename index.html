@@ -23,7 +23,7 @@
     <meta charset="UTF-8" />
     <title>Sprite Palette Guesser</title>
     <meta name="application-name" content="Sprite Palette Guesser" />
-    <meta name="version" content="1.2" />
+    <meta name="version" content="1.2.1" />
 
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2290%25%22 font-size=%2290%22 text-anchor=%22middle%22 fill=%22cyan%22>∰</text></svg>" />
 
@@ -385,6 +385,11 @@
 
             <div id="setup">
                 <p class="intro">Load your own sprites to play. Files are read locally by your browser and are never uploaded.</p>
+                <p class="help">
+                    Use <button type="button" id="meanColorCalculatorButton" class="clickable" onclick="window.open('https://felipert98.github.io/MeanColorCalculator/', '_blank', 'noopener,noreferrer')">
+                        MeanColorCalculator
+                    </button> to generate color maps from your sprites and export a JSON file formatted for this game.
+                </p>
 
                 <div id="setupOptions">
                     <fieldset>
@@ -407,9 +412,9 @@
                     </fieldset>
 
                     <fieldset>
-                        <legend>Option 2 - JS file</legend>
+                        <legend>Option 2 - JSON file</legend>
                         <p class="help">
-                            Choose a .js (or .json) file that declares one object. Each key is the answer; each value has an
+                            Choose a .json (or .js) file that declares one object. Each key is the answer; each value has an
                             <b>image</b> and a <b>colorMap</b>, both as data URLs (or image URLs):
                         </p>
                         <pre>const myData = {
@@ -419,7 +424,7 @@
   },
 };</pre>
                         <div class="row">
-                            <button type="button" id="jsFileButton" class="clickable">JS file...</button>
+                            <button type="button" id="jsFileButton" class="clickable">JSON file...</button>
                             <input type="text" id="jsFileText" readonly tabindex="-1" placeholder="No file selected">
                         </div>
                         <p class="status" id="jsFileStatus">Only load files you trust: the page runs the file's code.</p>

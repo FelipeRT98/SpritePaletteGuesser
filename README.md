@@ -30,14 +30,16 @@ No installation or additional software is required.
 
 The game does not include any images: you provide them on the start screen. Files are read locally by your browser and are never uploaded anywhere.
 
-Each sprite needs two images:
+Use [MeanColorCalculator](https://felipert98.github.io/MeanColorCalculator) to generate color maps from your original sprites or export a JSON.
 
+
+### Option 1: Folders
+
+Each sprite needs two images:
 - **Image**: the original sprite, revealed when the round ends.
 - **Color map**: the sprite's color palette rendered as an image (colors only, without the sprite's shape). This is the clue shown to the player.
 
 The name of the sprite is the answer, and it is what appears in the search list. Use names that are easy to search.
-
-### Option 1: Folders
 
 Select two folders using the **Images folder...** and **Color maps folder...** buttons.
 
@@ -56,11 +58,11 @@ sprites/
     2_image.png
 ```
 
-### Option 2: JS file
+### Option 2: JSON file
 
-Select a `.js` (or `.json`) file using the **JS file...** button. The file must declare a single object where each key is the answer and each value has an `image` and a `colorMap`, both as data URLs (or image URLs):
+Select a `.json` (or `.js`) file using the **JSON file...** button. The file must declare a single object where each key is the answer and each value has an `image` and a `colorMap`, both as data URLs (or image URLs):
 
-```js
+```json
 const myData = {
   "1_image": {
     image: "data:image/png;base64,...",
